@@ -1,0 +1,10 @@
+services:
+  - name: proxy
+    addr: ":__PROXY_PORT__"
+    handler:
+      type: auto
+      auth:
+        username: "__PROXY_USER__"
+        password: "__PROXY_PASS__"
+    listener:
+      type: tcp

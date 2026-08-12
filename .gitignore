@@ -1,0 +1,14 @@
+.env
+config.yml
+
+.DS_Store
+Thumbs.db
+
+.idea/
+.vscode/
+*.swp
+*~
+
+# Build output (image archives)
+/dist/
+*.tar

@@ -1,0 +1,28 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  proxy-tests:
+    name: Proxy smoke tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Check gost binary
+        run: |
+          test -x gost-linux-amd64 || test -f gost-linux-amd64
+          chmod +x gost-linux-amd64
+
+      - name: Prepare .env
+        run: cp .env.example .env
+
+      - name: Run tests
+        run: ./tests.sh
