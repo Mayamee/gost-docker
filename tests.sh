@@ -30,7 +30,7 @@ set +a
 : "${PROXY_PASS:?PROXY_PASS обязателен в .env}"
 
 PROXY_HOST="${PROXY_HOST:-127.0.0.1}"
-TEST_URL="${TEST_URL:-https://example.com}"
+TEST_URL="${TEST_URL:-https://github.com}"
 CURL_OPTS=(--silent --show-error --output /dev/null --connect-timeout 5 --max-time 15)
 
 # Уникальные имена только для этого прогона — чужие ресурсы не трогаем

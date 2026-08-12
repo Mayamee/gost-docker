@@ -25,4 +25,7 @@ jobs:
         run: cp .env.example .env
 
       - name: Run tests
+        env:
+          # Внешний upstream для smoke: у Actions нет внутреннего echo-роута
+          TEST_URL: https://github.com
         run: ./tests.sh

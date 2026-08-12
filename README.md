@@ -88,7 +88,7 @@ docker run -d -p 9997:9997 gost-proxy
 1. при валидных `PROXY_PORT` / `PROXY_USER` / `PROXY_PASS` запрос проксируется;
 2. при неверном пароле запрос не проходит.
 
-Опционально: `PROXY_HOST` (по умолчанию `127.0.0.1`), `TEST_URL` (по умолчанию `https://example.com`).
+Опционально: `PROXY_HOST` (по умолчанию `127.0.0.1`), `TEST_URL` (по умолчанию `https://github.com`; в CI задаётся в workflow).
 
 ## CI
 
