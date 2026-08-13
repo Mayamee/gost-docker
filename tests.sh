@@ -64,7 +64,8 @@ fail() {
   FAILED=$((FAILED + 1))
 }
 
-# Удаляет только ресурсы, созданные этим запуском (артефакт dist/*.tar оставляем)
+# Удаляет только ресурсы этого запуска: контейнер, тестовый образ и dist/<IMAGE_NAME>.tar.
+# Архивы сборки (dist/<IMAGE_NAME>.amd64.tar / .arm64.tar) не трогаем.
 cleanup() {
   local ec=$?
   log_section "Очистка"
@@ -81,6 +82,16 @@ cleanup() {
     docker rmi -f "${TEST_IMAGE}" >/dev/null 2>&1 || true
   else
     log "  • образ не создавался — пропускаю"
+  fi
+
+  if [[ "${CREATED_ARCHIVE}" -eq 1 ]]; then
+    log "  • удаляю тестовый артефакт dist/${IMAGE_NAME}.tar"
+    rm -f "${ARCHIVE_PATH}"
+    if [[ -d "${DIST_DIR}" ]] && [[ -z "$(ls -A "${DIST_DIR}" 2>/dev/null || true)" ]]; then
+      rmdir "${DIST_DIR}" 2>/dev/null || true
+    fi
+  else
+    log "  • тестовый артефакт не создавался — пропускаю"
   fi
 
   return "${ec}"
@@ -261,9 +272,6 @@ fi
 log_section "Итог"
 log "  ✓ Успешно: ${PASSED}"
 log "  ✗ Провалено: ${FAILED}"
-if [[ "${CREATED_ARCHIVE}" -eq 1 ]]; then
-  log "  • Артефакт: dist/${IMAGE_NAME}.tar ($(du -h "${ARCHIVE_PATH}" | cut -f1))"
-fi
 
 if [[ "${FAILED}" -gt 0 ]]; then
   log "✗ Есть проваленные проверки."
