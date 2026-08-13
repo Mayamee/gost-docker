@@ -4,8 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT_DIR"
 
-if [[ ! -f .env ]]; then
-  echo "✗ Ошибка: файл .env не найден. Скопируйте .env.example в .env и задайте значения." >&2
+if [[ ! -f .env.test ]]; then
+  echo "✗ Ошибка: файл .env.test не найден." >&2
   exit 1
 fi
 
@@ -21,13 +21,13 @@ fi
 
 set -a
 # shellcheck disable=SC1091
-source .env
+source .env.test
 set +a
 
-: "${IMAGE_NAME:?IMAGE_NAME обязателен в .env}"
-: "${PROXY_PORT:?PROXY_PORT обязателен в .env}"
-: "${PROXY_USER:?PROXY_USER обязателен в .env}"
-: "${PROXY_PASS:?PROXY_PASS обязателен в .env}"
+: "${IMAGE_NAME:?IMAGE_NAME обязателен в .env.test}"
+: "${PROXY_PORT:?PROXY_PORT обязателен в .env.test}"
+: "${PROXY_USER:?PROXY_USER обязателен в .env.test}"
+: "${PROXY_PASS:?PROXY_PASS обязателен в .env.test}"
 
 PROXY_HOST="${PROXY_HOST:-127.0.0.1}"
 TEST_URL="${TEST_URL:-https://github.com}"
@@ -107,7 +107,7 @@ log "═════════════════════════
 log "  Проверка прокси gost"
 log "════════════════════════════════════════"
 log "• Цель:     ${TEST_URL}"
-log "• Прокси:   ${PROXY_HOST}:${PROXY_PORT}"
+log "• Прокси:   ${PROXY_HOST}:${PROXY_PORT} (.env.test)"
 log "• Артефакт: dist/${IMAGE_NAME}.tar"
 
 # ---------------------------------------------------------------------------
@@ -121,7 +121,7 @@ docker build \
   --build-arg "PROXY_USER=${PROXY_USER}" \
   --build-arg "PROXY_PASS=${PROXY_PASS}" \
   -t "${TEST_IMAGE}" \
-  . >/dev/null 2>&1
+  . >/dev/null
 CREATED_IMAGE=1
 log "  ✓ образ собран"
 
@@ -132,7 +132,7 @@ CREATED_ARCHIVE=1
 log "  ✓ артефакт записан"
 
 # ---------------------------------------------------------------------------
-# Кейс 0. Главный артефакт dist/<IMAGE_NAME>.tar должен существовать и грузиться
+# Кейс 0. Артефакт dist/<IMAGE_NAME>.tar должен существовать и грузиться
 # ---------------------------------------------------------------------------
 log_section "Кейс 0. Артефакт dist/${IMAGE_NAME}.tar валиден"
 
@@ -150,7 +150,6 @@ else
   fail "Assert: dist/${IMAGE_NAME}.tar пустой или отсутствует"
 fi
 
-# Убираем локальный тег, чтобы дальше работать только через load из архива
 log "  → Act: docker rmi ${TEST_IMAGE} (проверка load из tar)"
 docker rmi -f "${TEST_IMAGE}" >/dev/null 2>&1 || true
 
@@ -172,10 +171,10 @@ else
   exit 1
 fi
 
-log "  ◦ запускаю контейнер ${TEST_CONTAINER} (-p ${PROXY_PORT}:${PROXY_PORT})"
+log "  ◦ запускаю контейнер ${TEST_CONTAINER} (-p 127.0.0.1:${PROXY_PORT}:${PROXY_PORT})"
 docker run -d \
   --name "${TEST_CONTAINER}" \
-  -p "${PROXY_PORT}:${PROXY_PORT}" \
+  -p "127.0.0.1:${PROXY_PORT}:${PROXY_PORT}" \
   "${TEST_IMAGE}" >/dev/null
 CREATED_CONTAINER=1
 
@@ -192,7 +191,7 @@ if ! docker logs "${TEST_CONTAINER}" 2>&1 | grep -q "listening on"; then
   docker logs "${TEST_CONTAINER}" >&2 || true
   exit 1
 fi
-log "  ✓ контейнер из артефакта слушает :${PROXY_PORT}"
+log "  ✓ контейнер из артефакта слушает ${PROXY_HOST}:${PROXY_PORT}"
 
 # ---------------------------------------------------------------------------
 # Кейс 1. Валидные PROXY_* — запрос должен пройти через прокси

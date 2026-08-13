@@ -15,8 +15,9 @@ RUN chmod +x /tmp/render-config.sh && /tmp/render-config.sh
 FROM scratch
 
 ARG PROXY_PORT
+ARG TARGETARCH
 
-COPY gost-linux-amd64 /gost
+COPY gost-linux-${TARGETARCH} /gost
 COPY --from=config /config.yml /config.yml
 
 EXPOSE ${PROXY_PORT}
